@@ -5,20 +5,20 @@
 #define LED_TYPE WS2812
 #define NUM_LEDS 296
 
-#define MAX_EXPLOSIONS 5
+#define MAX_EXPLOSIONS 2
 
 uint8_t max_bright = 100;
 struct CRGB leds[NUM_LEDS];
 
 float resistance = .01f;
-float brightnessDecrease = 2;
-float explosionSize = .2f;
+float brightnessDecrease = 1.2;
+float explosionSize = .15f;
 float chanceOfSpawn = .1; // % each tick (.01 > 100%)
 
 #define NUM_COLORS 2
 int colors[] = {230, 60};
 
-#define PARTICLE_SIZE 6
+#define PARTICLE_SIZE 12
 
 class Dot
 {
@@ -36,9 +36,12 @@ public:
         this->alive = true;
         this->position = position;
         this->direction = direction;
-        this->speed = speed + (random(-9, 9) / 10);
-        this->color = color + random(-5, 5);
+        this->speed = speed + (random(-3, 3));
+        this->color = color + random(-2, 2);
         this->brightness = 255 - random(20);
+
+        if (this->speed <= 0)
+            this->speed = .5;
     };
 
     void Run()
@@ -108,7 +111,8 @@ public:
         this->epxloded = true;
         for (int i = 0; i < PARTICLE_SIZE; i++)
         {
-            dots[i] = Dot(this->position, i < PARTICLE_SIZE / 2 ? 1 : -1, i < PARTICLE_SIZE / 2 ? 3 - i : 6 - i, this->color);
+            if (random(5) > 1)
+                dots[i] = Dot(this->position, i < PARTICLE_SIZE / 2 ? 1 : -1, i < PARTICLE_SIZE / 2 ? (PARTICLE_SIZE / 2) - i : PARTICLE_SIZE - i, this->color);
         }
     };
 
@@ -136,7 +140,8 @@ public:
                 speed = sin((progress * PI) / 2);
 
                 this->position += this->speed * (this->position - this->destination > 0 ? -1 : 1);
-                leds[round(this->position)] = CHSV(this->color, 255, 255 * flicker);
+                if (this->position > 0 && this->position < NUM_LEDS)
+                    leds[round(this->position)] = CHSV(this->color, 255, 255 * flicker);
             }
         }
         else
